@@ -16,33 +16,44 @@ except ImportError:
 client = InferenceClient(MODEL_NAME, token=HF_TOKEN)
 
 def detect_skill_gap(task: str, notes: str) -> List[str]:
-    """
-    Identifies specific technical skill gaps using an expert mentor persona.
-    """
     task_trunc = str(task)[:500] # type: ignore
     notes_trunc = str(notes)[:400] # type: ignore
     
-    prompt = f"""<s>[INST] You are an expert software engineering mentor and AI system.
-Your task is to analyze a user's task description and struggles, and identify SPECIFIC technical skill gaps.
+    prompt = f"""<s>[INST] You are an expert software engineering mentor and AI system designed for high-fidelity skill gap analysis.
 
-DO NOT give generic answers.
+### TASK:
+Analyze the Task Description and Struggles provided below to identify EXACT technical skill gaps.
 
-INPUT:
+### EXAMPLES (LEARN FROM THESE):
+
+1. INPUT:
+   Task: Build a real-time chat with Socket.io and React
+   Notes: I don't know how to handle rooms and multiple users.
+   OUTPUT:
+   {{
+     "skill_gaps": ["Socket.io room management", "React WebSocket state handling", "Real-time event broadcasting"],
+     "learning_suggestions": ["Master Socket.io join/leave room patterns", "Practice updating React state from async WebSocket events"]
+   }}
+
+2. INPUT:
+   Task: Deploy a Go microservice to AWS
+   Notes: I'm confused about the EC2 instance setup and Docker images.
+   OUTPUT:
+   {{
+     "skill_gaps": ["AWS EC2 instance configuration", "Docker image optimization for Go", "Container orchestration on AWS"],
+     "learning_suggestions": ["Learn AWS VPC and Security Group setup", "Practice multi-stage Docker builds for Go binaries"]
+   }}
+
+### CURRENT INPUT FOR ANALYSIS:
 Task Description: {task_trunc}
 Struggles / Notes: {notes_trunc}
 
-RULES:
-1. Extract EXACT technologies, tools, and concepts mentioned or implied.
-2. Identify REAL skill gaps based on missing knowledge.
-3. Be SPECIFIC and CONCRETE (e.g., 'Flask routing' instead of 'API').
-4. Use both task and struggles context.
-5. If user says 'I don't know X', include X as a skill gap.
+### CRITICAL RULES:
+1. BE PRECISE: No generic terms like 'Programming' or 'Cloud'. Use specific tools (e.g., 'Alembic', 'PostgreSQL').
+2. DIRECT INCLUSION: If user mentions they 'don't know X', X MUST be in the gaps.
+3. OUTPUT FORMAT: STRICT JSON only. Do not add any text before or after the JSON.
 
-OUTPUT FORMAT (STRICT JSON):
-{{
-  "skill_gaps": ["Specific Skill 1", "Specific Skill 2"],
-  "learning_suggestions": ["Suggestion 1", "Suggestion 2"]
-}}
+### OUTPUT JSON:
 [/INST]</s>"""
 
     try:

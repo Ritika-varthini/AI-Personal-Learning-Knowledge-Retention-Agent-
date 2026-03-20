@@ -17,6 +17,11 @@ def run_pipeline(task_description: str, employee_notes: str = ""):
     Unified Pipeline:
     User Input → NLP Processing → Skill Detection → Knowledge Retrieval → Story/Motivation → UI Output
     """
+    from utils.helpers import HF_TOKEN # type: ignore
+    
+    status = "Success ✅"
+    if not HF_TOKEN or HF_TOKEN == "":
+        status = "Warning ⚠️: HF_TOKEN missing in environment. Using fallback logic."
     
     # 1. EMOTION ANALYSIS (NLP Processing)
     emotion = get_sentiment_emotion(employee_notes)
@@ -39,14 +44,21 @@ def run_pipeline(task_description: str, employee_notes: str = ""):
     
     # 6. RETURN COMPLETE OUTPUT
     return {
-        "status": "Success ✅",
+        "status": status,
         "task": task_description,
         "emotion": emotion,
         "skill_gaps": skill_gaps,
-        "resources": resources,
+        "resources": [
+            {
+                "skill": res["skill"],
+                "tutorial": res["tutorial"],
+                "code": res.get("code_snippet", "# No code available"),
+                "link": res.get("resource_link", "#")
+            } for res in resources
+        ],
         "past_learning": past_solutions,
-        "motivation_quote": motivation.get('quote'),
-        "motivation_tip": motivation.get('tip')
+        "motivation_quote": motivation.get('quote', 'Keep pushing forward!'),
+        "motivation_tip": motivation.get('tip', 'Every small step counts.')
     }
 
 if __name__ == "__main__":

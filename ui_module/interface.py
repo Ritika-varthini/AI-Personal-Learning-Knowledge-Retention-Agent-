@@ -96,6 +96,7 @@ def launch_streamlit():
                     
                     with res_col1:
                         st.subheader("🔍 Analysis Results")
+                        st.write(f"**System Status:** {results['status']}")
                         st.write(f"**Detected Emotion:** {results['emotion']}")
                         
                         st.write("**Detected Skill Gaps:**")
