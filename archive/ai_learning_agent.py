@@ -85,10 +85,10 @@ def detect_skill_gaps_llm(description: str, notes: str) -> List[str]:
     prompt = f"""<s>[INST] You are a precise technical skill analyzer. Your task is to identify SPECIFIC skill gaps based on the provided task and employee notes.
 
 TASK DESCRIPTION:
-{description[:400]}
+{description[:400] if isinstance(description, str) else str(description)[:400]} # type: ignore
 
 EMPLOYEE NOTES (Struggles/Confusions):
-{notes[:300]}
+{notes[:300] if isinstance(notes, str) else str(notes)[:300]} # type: ignore
 
 ANALYSIS INSTRUCTIONS:
 1. Identify exactly 2-3 specific technical concepts the employee is missing
@@ -134,7 +134,7 @@ Be precise and context-specific. [/INST]</s>"""
                     validated_gaps.append(gap)
 
             if validated_gaps:
-                return validated_gaps[:3]
+                return [g for g in validated_gaps[:3]] # type: ignore
 
         # If parsing fails, return empty to trigger context-aware fallback
         return []
@@ -173,7 +173,7 @@ def generate_tutorial(skill_gap: str, task_context: str) -> Dict:
     prompt = f"""<s>[INST] Create a precise learning resource for the following skill gap.
 
 SKILL GAP TO ADDRESS: {skill_gap}
-TASK CONTEXT: {task_context[:200]}
+TASK CONTEXT: {task_context[:200] if isinstance(task_context, str) else str(task_context)[:200]} # type: ignore
 
 REQUIREMENTS:
 1. Explanation: 2-3 sentences explaining the concept and WHY it matters for this specific task
@@ -310,7 +310,7 @@ def process_single_task(task_id: str, desc: str, notes: str) -> Dict:
 
     return {
         "task_id": task_id,
-        "task_description": desc[:100] + "..." if len(desc) > 100 else desc,
+        "task_description": (desc[:100] + "...") if len(desc) > 100 else desc, # type: ignore
         "employee_notes": notes,
         "emotion_detected": emotion,
         "sentiment_score": round(sentiment_score, 2),
@@ -349,7 +349,8 @@ def load_github_tasks(limit=5):
             "employee_notes": "I know basic Python scripting, but I've never worked with pandas for data manipulation or a library like ReportLab for PDF generation. I'm also unsure about handling different Excel file formats efficiently."
         }
     ]
-    return pd.DataFrame(sample_tasks[:limit])
+    subset_tasks = sample_tasks[:limit] # type: ignore
+    return pd.DataFrame(subset_tasks)
 
 print("\n🧪 Running Batch Processing Test...")
 tasks_df = load_github_tasks(5)

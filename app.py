@@ -22,9 +22,8 @@ def run_pipeline(task_description: str, employee_notes: str = ""):
     emotion = get_sentiment_emotion(employee_notes)
     
     # 2. SKILL DETECTION (NLP Module)
-    # Combine task and notes for better context
-    combined_input = f"Task: {task_description}\nNotes: {employee_notes}"
-    skill_gaps = detect_skill_gap(combined_input)
+    # Using separate task and notes for better expert mentor context
+    skill_gaps = detect_skill_gap(task_description, employee_notes)
     
     # 3. KNOWLEDGE RETRIEVAL (KB Module)
     # Check if we have similar tasks already solved
