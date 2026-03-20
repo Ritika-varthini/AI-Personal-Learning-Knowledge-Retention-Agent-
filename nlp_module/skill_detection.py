@@ -57,38 +57,55 @@ Struggles / Notes: {notes_trunc}
 [/INST]</s>"""
 
     try:
-        response = client.text_generation(
-            prompt,
-            max_new_tokens=250,
+        messages = [
+            {"role": "system", "content": "You are an expert software engineering mentor specializing in technical skill gap analysis. Output ONLY valid JSON."},
+            {"role": "user", "content": prompt}
+        ]
+        
+        response = client.chat_completion(
+            messages=messages,
+            max_tokens=300,
             temperature=0.1
         )
-        parsed = extract_json_robust(response)
+        # Handle different response formats (string or dict)
+        content = response.choices[0].message.content if hasattr(response, 'choices') else str(response)
+        parsed = extract_json_robust(content)
+        
         if parsed and "skill_gaps" in parsed:
             return list(parsed["skill_gaps"])[:4] # type: ignore
     except Exception as e:
-        print(f"Skill detection error: {e}")
+        print(f"Skill detection error (Conversational): {e}")
     
     return ["Task implementation patterns", "Relevant API documentation"]
 
 def get_learning_resources(skills: List[str]) -> List[Dict]:
     """
-    Generates tutorials and resources for a list of skills.
+    Generates tutorials and resources for a list of skills using Chat Completion.
     """
     all_resources = []
     for skill in skills:
-        prompt = f"""<s>[INST] Create a learning resource for this skill: {skill}
+        prompt = f"""Create a learning resource for this skill: {skill}
 
 OUTPUT FORMAT (STRICT JSON):
 {{
   "tutorial": "2-3 sentence explanation...",
   "code_snippet": "python_or_javascript_code...",
   "resource_link": "https://official-docs-url"
-}}
-[/INST]</s>"""
+}}"""
 
         try:
-            response = client.text_generation(prompt, max_new_tokens=400, temperature=0.2)
-            parsed = extract_json_robust(response)
+            messages = [
+                {"role": "system", "content": "Generate technical tutorials. Output ONLY valid JSON."},
+                {"role": "user", "content": prompt}
+            ]
+            response = client.chat_completion(
+                messages=messages,
+                max_tokens=600,
+                temperature=0.2
+            )
+            content = response.choices[0].message.content if hasattr(response, 'choices') else str(response)
+            parsed = extract_json_robust(content)
+            
             if parsed and all(k in parsed for k in ["tutorial", "code_snippet", "resource_link"]):
                 parsed["skill"] = skill
                 all_resources.append(parsed)
@@ -106,28 +123,28 @@ def generate_motivation(emotion: str, context: str) -> Dict:
     """
     Generates a motivational story based on the detected emotion and task context.
     """
-    prompt = f"""<s>[INST] Act as a career coach. Generate a motivational quote and tip.
-USER EMOTION: {emotion}
-TASK CONTEXT: {context}
-
-OUTPUT FORMAT (STRICT JSON):
-{{
-  "quote": "Small progress is still progress...",
-  "tip": "Focus on 15 mins of learning today."
-}}
-[/INST]</s>"""
-
+    prompt = f"USER EMOTION: {emotion}, TASK CONTEXT: {context}. Generate a motivational quote and tip."
     try:
-        response = client.text_generation(
-            prompt,
-            max_new_tokens=200,
+        messages = [
+            {"role": "system", "content": "Act as a career coach. Output ONLY valid JSON."},
+            {"role": "user", "content": prompt}
+        ]
+        response = client.chat_completion(
+            messages=messages,
+            max_tokens=200,
             temperature=0.4
         )
-        parsed = extract_json_robust(response)
+        content = response.choices[0].message.content if hasattr(response, 'choices') else str(response)
+        parsed = extract_json_robust(content)
         if parsed and "quote" in parsed:
             return parsed
     except:
         pass
+
+    return {
+        "quote": "Success is the sum of small efforts repeated daily.",
+        "tip": "Break the task into smaller sub-tasks."
+    }
 
     return {
         "quote": "Success is the sum of small efforts repeated daily.",
