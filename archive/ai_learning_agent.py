@@ -1,3 +1,4 @@
+# type: ignore
 # -*- coding: utf-8 -*-
 """ai_learning_agent.ipynb
 
@@ -7,17 +8,17 @@ Original file is located at
     https://colab.research.google.com/drive/1-gfuAMUhA_Y6E0neBDZlrroLPgxdkFnq
 """
 
-!pip install -q sentence-transformers pandas textblob datasets pydantic huggingface_hub gradio
+# !pip install -q sentence-transformers pandas textblob datasets pydantic huggingface_hub gradio
 
-import pandas as pd
+import pandas as pd # type: ignore
 import json
 import re
 import os
 from datetime import datetime
-from textblob import TextBlob
-from huggingface_hub import InferenceClient
+from textblob import TextBlob # type: ignore
+from huggingface_hub import InferenceClient # type: ignore
 from typing import List, Dict, Optional
-import gradio as gr
+import gradio as gr # type: ignore
 
 print("🚀 Initializing AI Skill Gap Detector v5.0...")
 
@@ -47,7 +48,8 @@ def extract_json_robust(response_text: str) -> Optional[Dict]:
         start = response_text.find('{')
         end = response_text.rfind('}')
         if start != -1 and end != -1 and end > start:
-            return json.loads(response_text[start:end+1])
+            json_text = response_text[start:end+1] # type: ignore
+            return json.loads(json_text)
     except json.JSONDecodeError:
         pass
 
